@@ -1,5 +1,4 @@
 import os
-import sys
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
                              QPushButton, QCheckBox, QSpinBox, QTextEdit, QFileDialog,
                              QDoubleSpinBox, QGroupBox, QGridLayout, QMessageBox)
@@ -10,10 +9,6 @@ import re
 import locale
 import html
 from tools.platform_utils import get_startupinfo, get_creationflags, open_file_manager
-
-if sys.platform == "win32":
-    import win32process
-    import win32con
 
 
 class FapAnalysisTab(QWidget):
