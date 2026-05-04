@@ -1,4 +1,5 @@
 import os
+import sys
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
                              QPushButton, QCheckBox, QSpinBox, QTextEdit, QFileDialog,
                              QDoubleSpinBox, QGroupBox, QGridLayout, QMessageBox)
@@ -8,8 +9,11 @@ import subprocess
 import re
 import locale
 import html
-import win32process
-import win32con
+from tools.platform_utils import get_startupinfo, get_creationflags, open_file_manager
+
+if sys.platform == "win32":
+    import win32process
+    import win32con
 
 
 class FapAnalysisTab(QWidget):
@@ -275,7 +279,7 @@ class FapAnalysisTab(QWidget):
     def open_directory(self, line_edit):
         directory = line_edit.text()
         if directory and os.path.isdir(directory):
-            os.startfile(directory)
+            open_file_manager(directory)
         else:
             QMessageBox.warning(self, self.tr("错误"), self.tr("无效的目录路径"))
 
@@ -296,9 +300,8 @@ class CommandWorker(QThread):
             env = os.environ.copy()
             env['MPLBACKEND'] = 'TkAgg'
 
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            startupinfo.wShowWindow = win32con.SW_HIDE
+            startupinfo = get_startupinfo()
+            creationflags = get_creationflags()
 
             process = subprocess.Popen(
                 self.cmd,
@@ -310,7 +313,7 @@ class CommandWorker(QThread):
                 bufsize=1,
                 universal_newlines=True,
                 startupinfo=startupinfo,
-                creationflags=win32process.CREATE_NO_WINDOW,
+                creationflags=creationflags,
                 env=env
             )
 
