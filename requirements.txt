@@ -2,3 +2,5 @@ PyQt5
 qdarkstyle
 fish-audio-preprocess
 
+# pywin32 is Windows-only and handled via conditional import; not required on Linux.
+
