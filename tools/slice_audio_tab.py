@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdi
                              QTextEdit, QMessageBox, QGridLayout, QGroupBox, QFileDialog)
 from PyQt5.QtCore import QThread, pyqtSignal, QSettings, QProcess
 import subprocess
+from tools.platform_utils import get_creationflags, open_file_manager
 
 
 class SliceAudioWorker(QThread):
@@ -17,7 +18,7 @@ class SliceAudioWorker(QThread):
 
     def run(self):
         try:
-            result = subprocess.run(self.command, capture_output=True, text=True, check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            result = subprocess.run(self.command, capture_output=True, text=True, check=True, creationflags=get_creationflags())
             self.finished.emit(result.stdout)
         except subprocess.CalledProcessError as e:
             self.finished.emit(f"Error: {e.stderr}")
@@ -262,6 +263,6 @@ class SliceAudioTab(QWidget):
     def open_directory(self, line_edit):
         directory = line_edit.text()
         if directory and os.path.isdir(directory):
-            os.startfile(directory)
+            open_file_manager(str(directory))
         else:
             QMessageBox.warning(self, self.tr("错误"), self.tr("无效的目录路径"))
