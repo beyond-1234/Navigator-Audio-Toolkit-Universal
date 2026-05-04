@@ -163,3 +163,4 @@ cython_debug/
 
 # Task tracking files (AI coding assistants)
 tasks.json
+PROGRESS.txt
