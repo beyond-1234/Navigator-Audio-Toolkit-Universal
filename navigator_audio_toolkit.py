@@ -3,6 +3,7 @@ import os
 import json
 import shutil
 import subprocess
+from tools.platform_utils import get_startupinfo, get_creationflags, get_executable_filter
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                              QPushButton, QLabel, QLineEdit, QComboBox,
                              QFileDialog, QMessageBox, QGroupBox,
@@ -134,11 +135,8 @@ def convert_file(args):
     command.append(output_file)
 
     try:
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-
         process = subprocess.Popen(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE,
-                                   text=True, encoding='utf-8', errors='replace', startupinfo=startupinfo)
+                                   text=True, encoding='utf-8', errors='replace', startupinfo=get_startupinfo())
 
         while True:
             line = process.stderr.readline()
@@ -186,7 +184,7 @@ class DragDropWidget(QWidget):
     def validate_ffprobe(self, ffprobe_path):
         try:
             result = subprocess.run([ffprobe_path, "-version"],
-                                    capture_output=True, text=True, check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+                                    capture_output=True, text=True, check=True, creationflags=get_creationflags())
             if "ffprobe version" not in result.stdout:
                 raise ValueError(self.tr("所选择的不是有效的 FFprobe 可执行文件"))
             return ffprobe_path
@@ -195,7 +193,7 @@ class DragDropWidget(QWidget):
 
     def select_ffprobe(self):
         file_dialog = QFileDialog()
-        ffprobe_path, _ = file_dialog.getOpenFileName(self, self.tr("选择FFprobe"), "", "FFprobe Executable (*.exe);;All Files (*)")
+        ffprobe_path, _ = file_dialog.getOpenFileName(self, self.tr("选择FFprobe"), "", get_executable_filter("FFprobe Executable"))
         if ffprobe_path:
             try:
                 ffprobe_path = self.validate_ffprobe(ffprobe_path)
@@ -227,7 +225,7 @@ class DragDropWidget(QWidget):
             ]
 
             json_result = subprocess.run(json_cmd, capture_output=True, text=True, encoding='utf-8', errors='replace',
-                                         creationflags=subprocess.CREATE_NO_WINDOW)
+                                         creationflags=get_creationflags())
 
             if json_result.returncode != 0:
                 raise subprocess.CalledProcessError(json_result.returncode, json_cmd, json_result.stdout,
@@ -288,7 +286,7 @@ class DragDropWidget(QWidget):
             ]
 
             detail_result = subprocess.run(detail_cmd, capture_output=True, text=True, encoding='utf-8',
-                                           errors='replace', creationflags=subprocess.CREATE_NO_WINDOW)
+                                           errors='replace', creationflags=get_creationflags())
 
             if detail_result.returncode != 0:
                 raise subprocess.CalledProcessError(detail_result.returncode, detail_cmd, detail_result.stdout,
@@ -796,7 +794,7 @@ class AudioConverter(QWidget):
     def is_valid_ffmpeg(self, path):
         try:
             result = subprocess.run([path, '-version'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    creationflags=subprocess.CREATE_NO_WINDOW, text=True, encoding='utf-8',
+                                    creationflags=get_creationflags(), text=True, encoding='utf-8',
                                     errors='replace')
             return "ffmpeg version" in result.stdout
         except (FileNotFoundError, subprocess.CalledProcessError):
@@ -804,7 +802,7 @@ class AudioConverter(QWidget):
 
     def update_ffmpeg_capabilities(self, ffmpeg_path):
         result = subprocess.run([ffmpeg_path, '-version'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                creationflags=subprocess.CREATE_NO_WINDOW, text=True, encoding='utf-8',
+                                creationflags=get_creationflags(), text=True, encoding='utf-8',
                                 errors='replace')
 
         if '--enable-libsoxr' in result.stdout:
@@ -838,7 +836,7 @@ class AudioConverter(QWidget):
     def is_valid_ffprobe(self, path):
         try:
             result = subprocess.run([path, '-version'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    creationflags=subprocess.CREATE_NO_WINDOW, text=True, encoding='utf-8',
+                                    creationflags=get_creationflags(), text=True, encoding='utf-8',
                                     errors='replace')
             return "ffprobe version" in result.stdout
         except (FileNotFoundError, subprocess.CalledProcessError):
@@ -865,7 +863,7 @@ class AudioConverter(QWidget):
         try:
             result = subprocess.run([ffmpeg_path, "-version"],
                                     capture_output=True, text=True, check=True,
-                                    creationflags=subprocess.CREATE_NO_WINDOW)
+                                    creationflags=get_creationflags())
             if "ffmpeg version" not in result.stdout:
                 raise ValueError(self.tr("所选择的不是有效的 FFmpeg 可执行文件"))
             return ffmpeg_path
@@ -875,7 +873,7 @@ class AudioConverter(QWidget):
     def select_ffmpeg(self):
         file_dialog = QFileDialog()
         ffmpeg_path, _ = file_dialog.getOpenFileName(self, self.tr("选择FFmpeg"), "",
-                                                     "FFmpeg Executable (*.exe);;All Files (*)")
+                                                     get_executable_filter("FFmpeg Executable"))
         if ffmpeg_path:
             try:
                 ffmpeg_path = self.validate_ffmpeg(ffmpeg_path)
@@ -978,7 +976,7 @@ class AudioConverter(QWidget):
             input_file
         ]
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True, creationflags=get_creationflags())
             data = json.loads(result.stdout)
             return int(data['streams'][0]['channels'])
         except Exception as e:
